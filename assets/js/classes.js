@@ -2,7 +2,15 @@ $(async function() {
   const classList = await $.ajax(`${api_base_url}/class/all`);
   const teacherList = await $.ajax(`${api_base_url}/teacher/all`);
   
-  $('#class-list').DataTable({
+  $('#class-list').on('click', 'td', function(e) {
+    if($(this).children('input').length) {
+      let data = $('#class-list').DataTable().cell(this).data();
+      $('#class-list').DataTable().cell(this).data(data ? 0 : 1);
+    }
+    else if($(this).children('i').length) {
+      // delete row
+    }
+  }).DataTable({
     dom: "t",
     data: classList,
     paging: false,
@@ -13,15 +21,6 @@ $(async function() {
       { data: "isIncluded", render: function(data, type, row, meta) { return `<input class='isIncluded' type='checkbox' ${data ? 'checked' : ''}>` } },
       { defaultContent: "<i class='fas fa-trash-alt' style='cursor: pointer'></i>" }
     ]
-  });
-  $('#class-list').on('click', 'td', function(e) {
-    if($(this).children('input').length) {
-      let data = $('#class-list').DataTable().cell(this).data();
-      $('#class-list').DataTable().cell(this).data(data ? 0 : 1);
-    }
-    else if($(this).children('i').length) {
-      // delete row
-    }
   });
   datatableEdit({
     dataTable : $('#class-list').DataTable(),
@@ -35,7 +34,9 @@ $(async function() {
   });
   
   /* generating teacher list table */
-  $('#teacher-list').DataTable({
+  $('#teacher-list').on('click', 'td', function(e) {
+    console.log(this);
+  }).DataTable({
     dom: "t",
     data: teacherList,
     paging: false,
@@ -47,13 +48,12 @@ $(async function() {
       { data: "restriction" }
     ]
   });
-  $('#teacher-list').on('click', 'td', function(e) {
-    
-  });
   datatableEdit({
     dataTable : $('#teacher-list').DataTable(),
     columnDefs : [
-      
+      { targets : 0 },
+      { targets : 1 },
+      { targets : 2 }
      ],
      onEdited : (prev, changed, index, cell) => {
        
@@ -63,7 +63,7 @@ $(async function() {
   generateUnitTable(classList, teacherList);
 });
 
-function regen() {
+async function regen() {
   const classList = await $.ajax(`${api_base_url}/class/all`);
   const teacherList = await $.ajax(`${api_base_url}/teacher/all`);
   generateUnitTable(classList, teacherList);
@@ -72,7 +72,6 @@ function regen() {
 }
 
 function generateUnitTable(classList, teacherList) {
-  console.log(classList, teacherList)
   let infant = 0, child = 0, infantTeacher = 0, childTeacher = 0;
   const ageList = classList.map(o => o.age), ageCounts = {};
   ageList.forEach(x => { ageCounts[x] = (ageCounts[x] || 0) + 1 });
