@@ -15,5 +15,20 @@
   "bugs": {
     "url": "https://github.com/luftaquila/ajoukinder/issues"
   },
-  "homepage": "https://github.com/luftaquila/ajoukinder#readme"
+  "homepage": "https://github.com/luftaquila/ajoukinder#readme",
+  "dependencies": {
+    "@babel/cli": "^7.13.14",
+    "@babel/core": "^7.13.14",
+    "@babel/node": "^7.13.13",
+    "@babel/plugin-transform-classes": "^7.13.0",
+    "@babel/polyfill": "^7.12.1",
+    "@babel/preset-env": "^7.13.12",
+    "axios": "^0.21.1",
+    "body-parser": "^1.19.0",
+    "dateformat": "^4.5.1",
+    "dotenv": "^8.2.0",
+    "express": "^4.17.1",
+    "jsonwebtoken": "^8.5.1",
+    "mariadb": "^2.5.3"
+  }
 }

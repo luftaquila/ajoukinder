@@ -13,7 +13,9 @@
   <link href="assets/css/sb-admin-2.css" rel="stylesheet">
   <link href="/res/fontawesome5/css/all.min.css" rel="stylesheet" type="text/css">
   <link href="https://fonts.googleapis.com/css?family=Nanum+Gothic&display=swap&subset=korean" rel="stylesheet">
-
+  
+  <link href="assets/vendor/datatables/datatables.min.css" rel="stylesheet">
+  
   <!-- Analytics tags -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=UA-102734518-4"></script>
   <script>
@@ -49,15 +51,15 @@
       <hr class="sidebar-divider my-0">
       
       <!-- Nav Item -->
-      <li class="nav-item active">
-        <a class="nav-link" href="index.html">
+      <li class="nav-item">
+        <a class="nav-link" href="timetable.html">
           <i class="fas fa-fw fa-clipboard-list"></i>
-          <span>근무 시간표 작성</span>
+          <span>근무 시간표</span>
         </a>
       </li>
       
       <!-- Nav Item -->
-      <li class="nav-item">
+      <li class="nav-item active">
         <a class="nav-link" href="classes.html">
           <i class="far fa-fw fa-school"></i>
           <span>교사 / 학급 관리</span>
@@ -96,12 +98,62 @@
         <div class="container-fluid">
           <!-- Page Heading -->
           <div class="d-sm-flex align-items-center justify-content-between mb-4">
-            <h1 class="h3 mb-0 text-gray-800">교사 근무 시간표 작성</h1>
+            <h1 class="h3 mb-0 text-gray-800">교사 및 학급 관리</h1>
           </div>
-          가나다라
-
           <!-- Contents -->
+          <h5>교사 구성</h5>
+          <div id='unit-configuration' style='margin-bottom: 2rem'></div>
+          <style>
+            #unit-configuration table {
+              text-align: center;
+              color: black;
+            }
+            #unit-configuration table tr td {
+              padding: 3px 10px;
+              border: 1px solid gray;
+            }
+          </style>
           
+          <h5>학급 관리</h5>
+          <table class="table-bordered" id="class-list" style='text-align: center;' cellspacing="0">
+            <colgroup>
+              <col width='100px' />
+              <col width='90px' />
+              <col width='50px' />
+              <col width='50px' />
+            </colgroup>
+            <thead>
+              <th>학급</th>
+              <th>연령</th>
+              <th>포함</th>
+              <th>삭제</th>
+            </thead>
+          </table>
+          <style>
+            #class-list th { padding: 5px 5px; }
+            #class-list td { padding: 3px 10px; }
+          </style>
+          <br>
+          
+          <h5>교사 관리</h5>
+          <table class="table-bordered" id="teacher-list" style='text-align: center;' cellspacing="0">
+            <colgroup>
+              <col width='80px' />
+              <col width='80px' />
+              <col width='100px' />
+              <col width='500px' />
+            </colgroup>
+            <thead>
+              <th>코드</th>
+              <th>이름</th>
+              <th>학급</th>
+              <th>제약조건</th>
+            </thead>
+          </table>
+          <style>
+            #class-list th { padding: 5px 5px; }
+            #class-list td { padding: 3px 10px; }
+          </style>
           <!-- End of Contents -->
         </div>
         <!-- /.container-fluid -->
@@ -122,7 +174,10 @@
   <script src="assets/js/sb-admin-2.min.js"></script>
 
   <!-- Page level plugins -->
-  <script src="assets/js/apply.js"></script>
-	<script src="assets/js/sweetalert2.min.js"></script>
+  <script src="assets/js/configure.js"></script>
+  <script src="assets/js/classes.js"></script>
+  
+  <script type="text/javascript" src="https://cdn.datatables.net/v/bs4-4.1.1/dt-1.10.24/rr-1.2.7/datatables.min.js"></script>
+  <script src='/res/datatable-editor.js'></script>
 </body>
 </html>

@@ -1,0 +1,1 @@
+api_base_url = '/ajoukinder/api'
