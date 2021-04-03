@@ -1,0 +1,19 @@
+{
+  "name": "ajoukinder",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "npx babel-node index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/luftaquila/ajoukinder.git"
+  },
+  "author": "LUFT-AQUILA",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/luftaquila/ajoukinder/issues"
+  },
+  "homepage": "https://github.com/luftaquila/ajoukinder#readme"
+}
