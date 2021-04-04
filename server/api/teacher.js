@@ -38,7 +38,6 @@ router.put('/', async (req, res) => {
     res.send({ status: true, result: result });
   }
   catch(e) {
-    if(e.code == 'ER_DUP_ENTRY') res.status(400).send({ status: false, code: e.code, msg: `이미 존재하는 교사 코드입니다.` });
     res.status(400).send({ status: false, code: e.code, msg: `알 수 없는 오류입니다.<br>${e.code}` });
   }
 });
@@ -47,6 +46,11 @@ router.put('/', async (req, res) => {
 router.get(`/restriction/:id`, async (req, res) => {
   const restriction = await util.query(`SELECT restriction FROM teacher WHERE id='${req.params.id}' LIMIT 1;`);
   res.send(JSON.parse(restriction[0].restriction));
+});
+
+router.delete(`/restrictions`, async (req, res) => {
+  const result = await util.query(`UPDATE teacher SET restriction='[]';`);
+  res.send({ status: true, result: result });
 });
 
   

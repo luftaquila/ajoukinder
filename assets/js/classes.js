@@ -360,6 +360,20 @@ function eventListener() {
     }
   });
   
+  $('#delete_all_restrictions').click(e => {
+    $.ajax({
+      url: `${api_base_url}/teacher/restrictions`,
+      type: `DELETE`,
+      success: res => {
+        if(res.status && res.result && res.result.affectedRows) {
+          toastr["error"](`제약조건을 모두 제거했습니다.`);
+        }
+        else Swal.fire({ icon: 'error', title: '알 수 없는 오류입니다.', text: JSON.stringify(res) });
+      },
+      error: e => Swal.fire({ icon: 'error', title: e.responseJSON.msg })
+    });
+  });
+  
   /* Tooltips */
   $('#tooltip_page').click(function() {
     Swal.fire({
@@ -446,6 +460,7 @@ div#class_tooltip li {
       <b>제약조건</b>은 해당 교사를 근무표에 포함하지 않는 조건입니다.<br>
       체크된 시간대 및 요일에만 해당 교사를 근무 시간표에서 제외합니다.
     </li>
+    <li>표 하단의 <kbd><i class='fas fa-eraser'></i> 제약조건 전체 삭제</kbd>를 클릭하면 모든 교사의 제약조건을 일괄 삭제합니다.</li>
 </div>
 <style>
 div#teacher_tooltip {
