@@ -15,6 +15,7 @@
   <link href="https://fonts.googleapis.com/css?family=Nanum+Gothic&display=swap&subset=korean" rel="stylesheet">
   
   <link href="assets/vendor/datatables/datatables.min.css" rel="stylesheet">
+  <link href="/res/toastr/toastr.min.css" rel="stylesheet"/>
   
   <!-- Analytics tags -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=UA-102734518-4"></script>
@@ -95,14 +96,14 @@
         <!-- End of Topbar -->
         
         <!-- Begin Page Content -->
-        <div class="container-fluid">
+        <div class="container-fluid" style='padding-left: 25px;'>
           <!-- Page Heading -->
           <div class="d-sm-flex align-items-center justify-content-between mb-4">
             <h1 class="h3 mb-0 text-gray-800">교사 및 학급 관리</h1>
           </div>
           <!-- Contents -->
           <h5>교사 구성</h5>
-          <div id='unit-configuration' style='margin-bottom: 2rem'></div>
+          <div id='unit-configuration' style='margin-bottom: 3rem'></div>
           <style>
             #unit-configuration table {
               text-align: center;
@@ -114,46 +115,74 @@
             }
           </style>
           
-          <h5>학급 관리</h5>
-          <table class="table-bordered" id="class-list" style='text-align: center;' cellspacing="0">
-            <colgroup>
-              <col width='100px' />
-              <col width='90px' />
-              <col width='50px' />
-              <col width='50px' />
-            </colgroup>
-            <thead>
-              <th>학급</th>
-              <th>연령</th>
-              <th>포함</th>
-              <th>삭제</th>
-            </thead>
-          </table>
-          <style>
-            #class-list th { padding: 5px 5px; }
-            #class-list td { padding: 3px 10px; }
-          </style>
-          <br>
-          
-          <h5>교사 관리</h5>
-          <table class="table-bordered" id="teacher-list" style='text-align: center;' cellspacing="0">
-            <colgroup>
-              <col width='80px' />
-              <col width='80px' />
-              <col width='100px' />
-              <col width='500px' />
-            </colgroup>
-            <thead>
-              <th>코드</th>
-              <th>이름</th>
-              <th>학급</th>
-              <th>제약조건</th>
-            </thead>
-          </table>
-          <style>
-            #class-list th { padding: 5px 5px; }
-            #class-list td { padding: 3px 10px; }
-          </style>
+          <div style='width: 100%; max-width: 800px; margin-bottom: 5rem;'>
+            <div style='width: 48%; max-width: 400px; display: inline-block;'>
+              <div style='margin: auto; width: fit-content;'>
+                <h5>학급 관리&ensp;<i id='tooltip_class' style='color: #3366BB; cursor: pointer' class='far fa-question-circle'></i></h5>
+                <div>
+                  <span id='add_class' class='d-sm-inline-block btn btn-sm btn-success shadow-sm text-white' style='font-size: 0.8rem; margin-left: 0.5rem;'><i class='fas fa-layer-plus'></i>&ensp;추가</span>
+                  &ensp;
+                  <input id='add_class_name' maxlength=8 style='width: 4rem; font-size: 0.8rem; text-align: center' placeholder='학급 이름'>
+                  &ensp;
+                  <input id='add_class_age' maxlength=8 style='width: 4rem; font-size: 0.8rem; text-align: center' placeholder='학급 연령'>
+                </div>
+                <table class="table-bordered" id="class-list" style='text-align: center;' cellspacing="0">
+                  <colgroup>
+                    <col width='100px' />
+                    <col width='90px' />
+                    <col width='50px' />
+                    <col width='50px' />
+                  </colgroup>
+                  <thead>
+                    <th>학급</th>
+                    <th>연령</th>
+                    <th>포함</th>
+                    <th>삭제</th>
+                  </thead>
+                </table>
+                <style>
+                  #class-list th { padding: 5px 5px; }
+                  #class-list td { padding: 3px 10px; }
+                </style>
+              </div>
+            </div>
+            <div style='width: 48%; max-width: 400px; display: inline-block; margin-right: 3%;'>
+              <div style='margin: auto; width: fit-content'>
+                <h5>교사 관리&ensp;<i id='tooltip_class' style='color: #3366BB; cursor: pointer' class='far fa-question-circle'></i></h5>
+                <div>
+                  <span id='add_teacher' class='d-sm-inline-block btn btn-sm btn-success shadow-sm text-white' style='font-size: 0.8rem; margin-left: 0.5rem;'><i class='fas fa-user-plus'></i>&ensp;추가</span>
+                  &nbsp;
+                  <input id='add_teacher_code' maxlength=8 style='width: 4rem; font-size: 0.8rem; text-align: center' placeholder='교사 코드'>
+                  &nbsp;
+                  <input id='add_teacher_name' maxlength=8 style='width: 4rem; font-size: 0.8rem; text-align: center' placeholder='교사 이름'>
+                  &nbsp;
+                  <select id='class_select' required style='width: 5rem; font-size: 0.9rem;'>
+                    <option>학급 이름</option>
+                  </select>
+                </div>
+                <table class="table-bordered" id="teacher-list" style='text-align: center; margin: auto;' cellspacing="0">
+                  <colgroup>
+                    <col width='80px' />
+                    <col width='80px' />
+                    <col width='100px' />
+                    <col width='100px' />
+                    <col width='50px' />
+                  </colgroup>
+                  <thead>
+                    <th>코드</th>
+                    <th>이름</th>
+                    <th>학급</th>
+                    <th>제약조건</th>
+                    <th>삭제</th>
+                  </thead>
+                </table>
+                <style>
+                  #class-list th { padding: 5px 5px; }
+                  #class-list td { padding: 3px 10px; }
+                </style>
+              </div>
+            </div>
+          </div>
           <!-- End of Contents -->
         </div>
         <!-- /.container-fluid -->
@@ -179,5 +208,7 @@
   
   <script type="text/javascript" src="https://cdn.datatables.net/v/bs4-4.1.1/dt-1.10.24/rr-1.2.7/datatables.min.js"></script>
   <script src='/res/datatable-editor.js'></script>
+  <script src="/res/sweetalert2.min.js"></script>
+  <script src='/res/toastr/toastr.min.js'></script>
 </body>
 </html>
