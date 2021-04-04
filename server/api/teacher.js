@@ -38,6 +38,7 @@ router.put('/', async (req, res) => {
     res.send({ status: true, result: result });
   }
   catch(e) {
+    if(e.code == 'ER_DUP_ENTRY') res.status(400).send({ status: false, code: e.code, msg: `이미 존재하는 교사 코드입니다.` });
     res.status(400).send({ status: false, code: e.code, msg: `알 수 없는 오류입니다.<br>${e.code}` });
   }
 });

@@ -1,12 +1,15 @@
 $(async function() {
   const classList = await $.ajax(`${api_base_url}/class/all`);
   const teacherList = await $.ajax(`${api_base_url}/teacher/all`);
+  const colorList = await $.ajax(`assets/color.json`);
+  const regLength = classList.filter(v => Number(v.age)).length;
+  classList.forEach((v, i) => { v.color = (Number(v.age) && (i < regLength)) ? colorList[Math.round(i / classList.length * colorList.length)] : 'black' });
   
   /* jquery event listeners */
   eventListener();
   
   /* class select on teacher_add generation */
-  $('#class_select').html( `<option value disabled selected>학급 이름</option>` + classList.map(o => `<option value='${o.class}'>${o.class}</option>`).join('') );
+  $('#class_select').html( `<option value disabled selected>담당 학급</option>` + classList.map(o => `<option value='${o.class}'>${o.class}</option>`).join('') );
   
   /* class list table initialization */
   $('#class-list').on('click', 'td', function(e) {
@@ -52,7 +55,7 @@ $(async function() {
     paging: false,
     ordering: false,
     columns: [
-      { data: "class" },
+      { data: "class", render: (data, type, row, meta) => { const tgt = classList.find(o => o.class == data); return `<span style='color: ${ tgt ? tgt.color : 'black' }'>${data}</span>` } },
       { data: "age" },
       { data: "isIncluded", render: (data, type, row, meta) => { return `<input data-class='${row.class}' class='isIncluded' type='checkbox' ${data == 'true' ? 'checked' : ''}>` } },
       { render: (data, type, row, meta) => { return `<i class='delete_class fas fa-trash-alt' data-class='${row.class}' style='cursor: pointer'></i>` }}
@@ -181,7 +184,7 @@ $(async function() {
     columns: [
       { data: "id" },
       { data: "name" },
-      { data: "class" },
+      { data: "class", render: (data, type, row, meta) => { const tgt = classList.find(o => o.class == data); return `<span style='color: ${ tgt ? tgt.color : 'black' }'>${data}</span>` } },
       { data: "restriction", render: (data, type, row, meta) => { return `<span class='edit_teacher_restriction' data-teacher-id='${row.id}' style='color: #0645AD; border-bottom: 1px solid #0645AD; cursor: pointer;'>편집</span>` }},
       { render: (data, type, row, meta) => { return `<i class='delete_teacher fas fa-trash-alt' data-teacher-id='${row.id}' style='cursor: pointer'></i>` }}
     ]
@@ -231,7 +234,10 @@ $(async function() {
 async function regen() {
   const classList = await $.ajax(`${api_base_url}/class/all`);
   const teacherList = await $.ajax(`${api_base_url}/teacher/all`);
-  
+  const colorList = await $.ajax(`assets/color.json`);
+  const regLength = classList.filter(v => Number(v.age)).length;
+  classList.forEach((v, i) => { v.color = (Number(v.age) && (i < regLength)) ? colorList[Math.round(i / classList.length * colorList.length)] : 'black' });
+
   $('#class_select').html('');
   $('#class_select').html( `<option value disabled selected>학급 이름</option>` + classList.map(o => `<option value='${o.class}'>${o.class}</option>`).join('') );
   generateUnitTable(classList, teacherList);
@@ -261,8 +267,8 @@ function generateUnitTable(classList, teacherList) {
   });
   teacherList.forEach(o => {
     const target = classList.find(c => o.class == c.class);
-    infantTeacher += (Number(target.age) && Number(target.age) < 3) ? 1 : 0;
-    childTeacher += (Number(target.age) && Number(target.age) > 2) ? 1 : 0;
+    infantTeacher += (target && Number(target.age) && Number(target.age) < 3) ? 1 : 0;
+    childTeacher += (target && Number(target.age) && Number(target.age) > 2) ? 1 : 0;
   });
   
   // 첫 번째 줄(분류)
@@ -279,14 +285,14 @@ function generateUnitTable(classList, teacherList) {
   
   // 세 번째 줄(학급)
   html += `<tr>`;
-  for( const group of classList ) html += `<td>${group.class}</td>`;
+  for( const group of classList ) html += `<td style='color: ${group.color}'>${group.class}</td>`;
   html += `</tr>`;
   
   // 네 번째 줄(교사 목록)
   html += `<tr><td rowspan=4>교사</td>`;
   for( const group of classList ) {
     const teachers = teacherList.filter(o => o.class == group.class).map(o => o.name).join('<br>');
-    html += `<td>${teachers}</td>`;
+    html += `<td style='color: ${group.color}'>${teachers}</td>`;
   }
   html += `</tr>`;
   
@@ -352,5 +358,112 @@ function eventListener() {
         error: e => Swal.fire({ icon: 'error', title: e.responseJSON.msg })
       });
     }
+  });
+  
+  /* Tooltips */
+  $('#tooltip_page').click(function() {
+    Swal.fire({
+      title: `교사 및 학급 관리`,
+      html: `
+<div id='page_tooltip'>
+  학급과 교사 목록을 열람하고 수정합니다.
+  <ul>
+    <li><b>교사 구성</b><br>현재 어린이집 편제를 표시합니다.</li>
+    <li><b>학급 관리</b>와 <b>교사 관리</b>는 개별 도움말을 참조하세요.</li>
+</div>
+<style>
+div#page_tooltip {
+  line-height: 1.8rem;
+  font-size: 1rem;
+  text-align: left;
+}
+div#page_tooltip ul {
+  line-height: 1.5rem;
+  margin-top: 0.5rem;
+}
+div#page_tooltip li {
+  margin-bottom: 0.5rem;
+}
+</style>
+`,
+      showCloseButton: true,
+      showConfirmButton: false
+    });
+  });
+  $('#tooltip_class').click(function() {
+    Swal.fire({
+      title: `학급 관리`,
+      html: `
+<div id='class_tooltip'>
+  학급 목록을 관리합니다.
+  <ul>
+    <li>
+      <b>학급</b>과 <b>연령</b> 셀은 클릭하면 수정할 수 있습니다.<br>
+      수정한 후 <kbd>Enter</kbd> 를 눌러야 수정사항이 반영됩니다.
+    </li>
+    <li><b>포함</b> 열이 체크된 학급의 교사만 근무표에 포함됩니다.</li>
+    <li>학급을 추가하려면 표 상단의 학급 이름과 연령을 입력한 후 <kbd><i class='fas fa-layer-plus'></i> 추가</kbd> 를 클릭하세요.</li>
+    <li><b>연령</b> 값이 3 이상인 경우 유아반으로 분류하며, 값이 숫자인 학급만 색깔이 표시됩니다.<br>학급을 새로 추가하면 색깔이 잘못 표시되는 경우가 있는데, 새로고침하면 해결됩니다.</li>
+    <li><i class='fas fa-trash-alt'></i> 아이콘을 클릭하면 해당 학급이 삭제됩니다.</li>
+</div>
+<style>
+div#class_tooltip {
+  line-height: 1.8rem;
+  font-size: 1rem;
+  text-align: left;
+}
+div#class_tooltip ul {
+  line-height: 1.5rem;
+  margin-top: 0.5rem;
+}
+div#class_tooltip li {
+  margin-bottom: 0.5rem;
+}
+</style>
+`,
+      showCloseButton: true,
+      showConfirmButton: false
+    });
+  });
+  $('#tooltip_teacher').click(function() {
+    Swal.fire({
+      title: `교사 관리`,
+      html: `
+<div id='teacher_tooltip'>
+  교사 목록을 관리합니다.
+  <ul>
+    <li>
+      <b>코드</b>는 교사를 구분하는 고유 값입니다.<br>
+      전화번호 뒷자리 등으로 설정하도록 의도하였습니다.
+    </li>
+    <li>
+      <b>코드</b>와 <b>이름</b>, <b>학급</b> 셀은 클릭하면 수정할 수 있습니다.<br>
+      수정한 후 <kbd>Enter</kbd> 를 눌러야 수정사항이 반영됩니다.
+    </li>
+    <li>교사를 추가하려면 표 상단의 교사 코드와 이름, 학급을 입력한 후 <kbd><i class='fas fa-user-plus'></i> 추가</kbd> 를 클릭하세요.</li>
+    <li><i class='fas fa-trash-alt'></i> 아이콘을 클릭하면 해당 교사가 삭제됩니다.</li>
+    <li>
+      <b>제약조건</b>은 해당 교사를 근무표에 포함하지 않는 조건입니다.<br>
+      체크된 시간대 및 요일에만 해당 교사를 근무 시간표에서 제외합니다.
+    </li>
+</div>
+<style>
+div#teacher_tooltip {
+  line-height: 1.8rem;
+  font-size: 1rem;
+  text-align: left;
+}
+div#teacher_tooltip ul {
+  line-height: 1.5rem;
+  margin-top: 0.5rem;
+}
+div#teacher_tooltip li {
+  margin-bottom: 0.5rem;
+}
+</style>
+`,
+      showCloseButton: true,
+      showConfirmButton: false
+    });
   });
 }
