@@ -13,7 +13,7 @@ router.get('/all', async (req, res) => {
 
 router.post('/', async (req, res) => {
   try {
-    const result = await util.query(`INSERT INTO class(class, age, isIncluded) VALUES('${req.body.class}', '${req.body.age}', 1);`);
+    const result = await util.query(`INSERT INTO class(class, age, isIncluded) VALUES('${req.body.class}', '${req.body.age}', 'true');`);
     res.send({ status: true, result: result });
   }
   catch(e) {
@@ -21,5 +21,26 @@ router.post('/', async (req, res) => {
     else res.status(400).send({ status: false, code: e.code, msg: `알 수 없는 오류입니다.<br>${e.code}` });
   }
 });
+
+router.delete('/', async (req, res) => {
+  try {
+    const result = await util.query(`DELETE FROM class WHERE class='${req.body.class}';`);
+    res.send({ status: true, result: result });
+  }
+  catch(e) {
+    res.status(400).send({ status: false, code: e.code, msg: `알 수 없는 오류입니다.<br>${e.code}` });
+  }
+});
+
+router.put('/', async (req, res) => {
+  try {
+    const result = await util.query(`UPDATE class SET ${req.body.target}='${req.body.value}' WHERE class='${req.body.class}';`);
+    res.send({ status: true, result: result });
+  }
+  catch(e) {
+    res.status(400).send({ status: false, code: e.code, msg: `알 수 없는 오류입니다.<br>${e.code}` });
+  }
+});
+
 
 export default router

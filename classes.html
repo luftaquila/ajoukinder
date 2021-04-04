@@ -67,6 +67,14 @@
         </a>
       </li>
       
+      <!-- Nav Item -->
+      <li class="nav-item">
+        <a class="nav-link" href="vacations.html">
+          <i class="far fa-fw fa-calendar-alt"></i>
+          <span>휴가 관리</span>
+        </a>
+      </li>
+      
       <!-- Divider -->
       <hr class="sidebar-divider d-none d-md-block">
 
@@ -88,9 +96,9 @@
             <i class="fa fa-bars"></i>
           </button>
           <div>
-            <span>아주대학교 어린이집 일정관리체계 v0.1b&nbsp;&nbsp;<a href='https://github.com/luftaquila/ajoukinder'><i class='far fa-question-circle'></i></a></span>
+            <span>아주대학교 어린이집 일정관리체계 v0.1b&nbsp;&nbsp;<a href='https://github.com/luftaquila/ajoukinder'><i class='far fa-info-circle'></i></a></span>
             <br>
-            <span style='font-size: 0.6rem'>©<script>document.write(new Date().getFullYear())</script> <a href='https://luftaquila.io/'>LUFT-AQUILA</span></a>
+            <span style='font-size: 0.7rem'>©<script>document.write(new Date().getFullYear())</script> <a href='https://luftaquila.io/'>LUFT-AQUILA</a></span>
           </div>          
         </nav>
         <!-- End of Topbar -->
@@ -99,11 +107,11 @@
         <div class="container-fluid" style='padding-left: 25px;'>
           <!-- Page Heading -->
           <div class="d-sm-flex align-items-center justify-content-between mb-4">
-            <h1 class="h3 mb-0 text-gray-800">교사 및 학급 관리</h1>
+            <h1 class="h3 mb-0 text-gray-800">교사 및 학급 관리&ensp;<i id='tooltip_class' style='color: #3366BB; cursor: pointer' class='far fa-question-circle'></i></h1>
           </div>
           <!-- Contents -->
-          <h5>교사 구성</h5>
-          <div id='unit-configuration' style='margin-bottom: 3rem'></div>
+          <h5 class='text-gray-800'>교사 구성</h5>
+          <div id='unit-configuration' style='margin-bottom: 2.5rem'></div>
           <style>
             #unit-configuration table {
               text-align: center;
@@ -118,7 +126,7 @@
           <div style='width: 100%; max-width: 800px; margin-bottom: 5rem;'>
             <div style='width: 48%; max-width: 400px; display: inline-block;'>
               <div style='margin: auto; width: fit-content;'>
-                <h5>학급 관리&ensp;<i id='tooltip_class' style='color: #3366BB; cursor: pointer' class='far fa-question-circle'></i></h5>
+                <h5 class='text-gray-800'>학급 관리&ensp;<i id='tooltip_class' style='color: #3366BB; cursor: pointer' class='far fa-question-circle'></i></h5>
                 <div>
                   <span id='add_class' class='d-sm-inline-block btn btn-sm btn-success shadow-sm text-white' style='font-size: 0.8rem; margin-left: 0.5rem;'><i class='fas fa-layer-plus'></i>&ensp;추가</span>
                   &ensp;
@@ -148,7 +156,7 @@
             </div>
             <div style='width: 48%; max-width: 400px; display: inline-block; margin-right: 3%;'>
               <div style='margin: auto; width: fit-content'>
-                <h5>교사 관리&ensp;<i id='tooltip_class' style='color: #3366BB; cursor: pointer' class='far fa-question-circle'></i></h5>
+                <h5 class='text-gray-800'>교사 관리&ensp;<i id='tooltip_class' style='color: #3366BB; cursor: pointer' class='far fa-question-circle'></i></h5>
                 <div>
                   <span id='add_teacher' class='d-sm-inline-block btn btn-sm btn-success shadow-sm text-white' style='font-size: 0.8rem; margin-left: 0.5rem;'><i class='fas fa-user-plus'></i>&ensp;추가</span>
                   &nbsp;
