@@ -380,10 +380,12 @@ function eventListener() {
       title: `교사 및 학급 관리`,
       html: `
 <div id='page_tooltip'>
-  학급과 교사 목록을 열람하고 수정합니다.
+  프로그램이 근무표를 작성하기 위해서는 학급과 교사 정보를 알아야 합니다.<br>
+  근무 시간표 작성에 필요한 학급과 교사 목록을 열람하고 수정합니다.
   <ul>
     <li><b>교사 구성</b><br>현재 어린이집 편제를 표시합니다.</li>
     <li><b>학급 관리</b>와 <b>교사 관리</b>는 개별 도움말을 참조하세요.</li>
+  </ul>
 </div>
 <style>
 div#page_tooltip {
@@ -419,6 +421,7 @@ div#page_tooltip li {
     <li>학급을 추가하려면 표 상단의 학급 이름과 연령을 입력한 후 <kbd><i class='fas fa-layer-plus'></i> 추가</kbd> 를 클릭하세요.</li>
     <li><b>연령</b> 값이 3 이상인 경우 유아반으로 분류하며, 값이 숫자인 학급만 색깔이 표시됩니다.<br>학급을 새로 추가하면 색깔이 잘못 표시되는 경우가 있는데, 새로고침하면 해결됩니다.</li>
     <li><i class='fas fa-trash-alt'></i> 아이콘을 클릭하면 해당 학급이 삭제됩니다.</li>
+  </ul>
 </div>
 <style>
 div#class_tooltip {
@@ -461,6 +464,7 @@ div#class_tooltip li {
       체크된 시간대 및 요일에만 해당 교사를 근무 시간표에서 제외합니다.
     </li>
     <li>표 하단의 <kbd><i class='fas fa-eraser'></i> 제약조건 전체 삭제</kbd>를 클릭하면 모든 교사의 제약조건을 일괄 삭제합니다.</li>
+  </ul>
 </div>
 <style>
 div#teacher_tooltip {
