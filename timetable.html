@@ -13,7 +13,8 @@
   <link href="assets/css/sb-admin-2.css" rel="stylesheet">
   <link href="/res/fontawesome5/css/all.min.css" rel="stylesheet" type="text/css">
   <link href="https://fonts.googleapis.com/css?family=Nanum+Gothic&display=swap&subset=korean" rel="stylesheet">
-
+  <link rel="stylesheet" href="https://cdn.rawgit.com/pingcheng/bootstrap4-datetimepicker/master/build/css/bootstrap-datetimepicker.min.css">
+  
   <!-- Analytics tags -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=UA-102734518-4"></script>
   <script>
@@ -104,12 +105,14 @@
         <div class="container-fluid">
           <!-- Page Heading -->
           <div class="d-sm-flex align-items-center justify-content-between mb-4">
-            <h1 class="h3 mb-0 text-gray-800">교사 근무 시간표 작성</h1>
+            <h1 class="h3 mb-0 text-gray-800">교사 근무 시간표 작성&ensp;<i id='tooltip_page' style='color: #3366BB; cursor: pointer' class='far fa-question-circle'></i></h1>
           </div>
-          집 가고 싶다
-
           <!-- Contents -->
-          
+          <h5 style='display: inline-block' class="text-gray-800">시작 주차</h5>
+          &ensp;
+          <div id="startWeek" style='display: inline-block'></div>
+          &ensp;&ensp;
+          <span id='start' class='btn btn-success shadow-sm text-white'>시작</span>
           <!-- End of Contents -->
         </div>
         <!-- /.container-fluid -->
@@ -123,14 +126,16 @@
   <a class="scroll-to-top rounded" href="#page-top">
     <i class="fas fa-angle-up"></i>
   </a>
-
   <script src="assets/vendor/jquery/jquery.min.js"></script>
   <script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
   <script src="assets/vendor/jquery-easing/jquery.easing.min.js"></script>
   <script src="assets/js/sb-admin-2.min.js"></script>
-
   <!-- Page level plugins -->
-  <script src="assets/js/main.js"></script>
+  <script src="/res/moment.min.js"></script>
+  <script type="text/javascript" src="https://cdn.rawgit.com/pingcheng/bootstrap4-datetimepicker/master/build/js/bootstrap-datetimepicker.min.js"></script>
+  <script type="text/javascript" src="https://cdn.rawgit.com/trco/bootstrap-weekpicker/master/src/bootstrap-weekpicker.min.js"></script>
+  <script src="/res/dateFormat.js"></script>
+  <script src="assets/js/configure.js"></script>
   <script src="assets/js/timetable.js"></script>
 </body>
 </html>

@@ -118,7 +118,7 @@ $(async function() {
       
       const restriction = await $.ajax(`${api_base_url}/teacher/restriction/${target}`);
       const lookup = {
-        days: { '월': 'mon', '화': 'tue', '수': 'wen', '목': 'thu', '금': 'fri', '토': 'sat' },
+        days: { '월': 'mon', '화': 'tue', '수': 'wed', '목': 'thu', '금': 'fri', '토': 'sat' },
         time: { '06:30': '0630', '07:30':'0730', '아침홀': 'amH', '08:30':'0830', '저녁홀': 'pmH', '09:00':'0900', '막당직': 'L_Dty' }
       }
       
