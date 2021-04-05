@@ -119,7 +119,7 @@ $(async function() {
       const restriction = await $.ajax(`${api_base_url}/teacher/restriction/${target}`);
       const lookup = {
         days: { '월': 'mon', '화': 'tue', '수': 'wed', '목': 'thu', '금': 'fri', '토': 'sat' },
-        time: { '06:30': '0630', '07:30':'0730', '아침홀': 'amH', '08:30':'0830', '저녁홀': 'pmH', '09:00':'0900', '막당직': 'L_Dty' }
+        time: { '06:30': 't0630', '07:30':'t0730', '아침홀': 'amH', '08:30':'t0830', '저녁홀': 'pmH', '09:00':'t0900', '막당직': 'L_Dty' }
       }
       
       let html = `<div style='margin-bottom: 0.5rem; font-size: 0.9rem;'><i class='fas fa-lightbulb-exclamation' style='color: forestgreen'></i>&ensp;근무에서 제외할 날을 선택하세요.</div><table id='restrictions' data-target='${target}' style='width: 100%'>`;

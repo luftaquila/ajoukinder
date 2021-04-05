@@ -1,40 +1,47 @@
 $(function() {
-  wp = $("#startWeek").weekpicker();
-  eventListener();
+  $('#start').click(main);
+  $('#reset').click(() => new Calendar('#calendar', [])).trigger('click');
 });
 
-function eventListener() {
-  $('#start').click(main);
-}
-
 async function main() {
-  /* initialization */
-  let timetable = [];
-  const startDay = new Date(wp.getYear(), 0, (1 + (wp.getWeek() - 1) * 7) - 4);
-  const weekdays = {
-    '월': 'mon',
-    '화': 'tue',
-    '수': 'wed',
-    '목': 'thu',
-    '금': 'fri',
-    '토': 'sat'
-  }
+  /* disabling buttons */
+  //$('#start, #reset').attr('disabled', true);
   
-  for(let i = 0; i < 28; i++) {
-    const targetDay = new Date(Number(startDay) + 24 * 3600000 * i);
-    if(!targetDay.getDay()) continue;
-    timetable.push({
-      date: targetDay.format('yyyy-mm-dd'),
-      day: weekdays[targetDay.format('ddd')],
-      isHoliday: false,
-      t0630: [],
-      t0730: [],
-      amH  : [],
-      t0830: [],
-      pmH  : [],
-      t0900: [],
-      L_Dty: []
-    });
-  }
+  /* timetable initialization */
+  let timetable = [];
+  const target = $('#calendar div.day.set');
+  if(!target.length) return Swal.fire({ icon: 'error', title: '선택된 날이 없습니다!' });
+  for(const dom of target) timetable.push(new Day($(dom).attr('data-day'), !$(dom).hasClass('today')));
+  
+  /* loading data */
+  const classList = await $.ajax(`${api_base_url}/class/all`);
+  const teacherList = await $.ajax(`${api_base_url}/teacher/all`);
+  
+  /* classes and teachers initialization */
+  let classes = [], teachers = [];
+  classList.filter(c => c.isIncluded == "true").forEach(c => {
+    let members = [];
+    const staffs = teacherList.filter(t => t.class == c.class); // 소속 선생님 찾기
+    
+    if(staffs.length) { // 소속 선생님이 존재하는 경우만
+      staffs.forEach(t => {
+        teachers.push(new Teacher(t.id, t.name, t.class, JSON.parse(t.restriction))); // 선생님 목록에 추가
+        members.push(new Teacher(t.id, t.name, t.class, JSON.parse(t.restriction))); // 학급 선생님 목록에 추가
+      });
+      classes.push(new Class(c.class, c.age, members)); // 학급 목록에 추가
+    }
+  });
+  
   console.log(timetable);
+  console.log(teachers);
+  console.log(classes);
+  
+  /* processing */
+  try {
+    
+  }
+  catch(e) {
+    
+  }
+  finally { $('#start, #reset').attr('disabled', false); }
 }

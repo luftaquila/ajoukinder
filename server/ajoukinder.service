@@ -1,0 +1,13 @@
+[Unit]
+Description=Ajoukinder backend server
+Wants=network-online.target
+After=network.target network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/home/luftaquila/HDD/ajoukinder/server
+ExecStart=/usr/local/bin/npx babel-node index.js
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
