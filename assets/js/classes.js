@@ -1,10 +1,7 @@
 $(async function() {
   const classList = await $.ajax(`${api_base_url}/class/all`);
   const teacherList = await $.ajax(`${api_base_url}/teacher/all`);
-  const colorList = await $.ajax(`assets/color.json`);
-  const regLength = classList.filter(v => Number(v.age)).length;
-  classList.forEach((v, i) => { v.color = (Number(v.age) && (i < regLength)) ? colorList[Math.round(i / classList.length * colorList.length)] : 'black' });
-  
+ 
   /* jquery event listeners */
   eventListener();
   
@@ -49,14 +46,46 @@ $(async function() {
         error: e => Swal.fire({ icon: 'error', title: e.responseJSON.msg })
       });
     }
+    
+    else if($(this).children('span.edit_class_color').length) {
+      const target = $(this).children('span.edit_class_color').attr('data-class');
+      const targetColor = $('#class-list').DataTable().row( $(this).parent() ).data().color;
+
+      Swal.fire({
+        title: `${target}반 색깔 수정`,
+        html: `<br><input id='classColor' type='color' value='${targetColor}'><br>`,
+        confirmButtonText: `Save`,
+        showCloseButton: true,
+        showCancelButton: true
+      }).then((result) => {
+        if(result.isConfirmed) {
+          $.ajax({
+            url: `${api_base_url}/class`,
+            type: `PUT`,
+            data: { target: 'color', value: $('#classColor').val(), class: target },
+            success: res => {
+              if(res.status && res.result && res.result.affectedRows) {
+                toastr["success"](`수정되었습니다.`);
+                regen();
+              }
+              else Swal.fire({ icon: 'error', title: '알 수 없는 오류입니다.', text: JSON.stringify(res) });
+            },
+          error: e => Swal.fire({ icon: 'error', title: e.responseJSON.msg })
+          });
+        }
+      });
+      
+    }
   }).DataTable({
     dom: "t",
     data: classList,
     paging: false,
     ordering: false,
+    destroy: true,
     columns: [
       { data: "class", render: (data, type, row, meta) => { const tgt = classList.find(o => o.class == data); return `<span style='color: ${ tgt ? tgt.color : 'black' }'>${data}</span>` } },
       { data: "age" },
+      { data: "color", render: (data, type, row, meta) => { return `<span class='edit_class_color' data-class='${row.class}' style='color: #0645AD; border-bottom: 1px solid #0645AD; cursor: pointer;'>편집</span>` }},
       { data: "isIncluded", render: (data, type, row, meta) => { return `<input data-class='${row.class}' class='isIncluded' type='checkbox' ${data == 'true' ? 'checked' : ''}>` } },
       { render: (data, type, row, meta) => { return `<i class='delete_class fas fa-trash-alt' data-class='${row.class}' style='cursor: pointer'></i>` }}
     ]
@@ -181,6 +210,7 @@ $(async function() {
     data: teacherList,
     paging: false,
     ordering: false,
+    destroy: true,
     columns: [
       { data: "id" },
       { data: "name" },
@@ -234,9 +264,6 @@ $(async function() {
 async function regen() {
   const classList = await $.ajax(`${api_base_url}/class/all`);
   const teacherList = await $.ajax(`${api_base_url}/teacher/all`);
-  const colorList = await $.ajax(`assets/color.json`);
-  const regLength = classList.filter(v => Number(v.age)).length;
-  classList.forEach((v, i) => { v.color = (Number(v.age) && (i < regLength)) ? colorList[Math.round(i / classList.length * colorList.length)] : 'black' });
 
   $('#class_select').html('');
   $('#class_select').html( `<option value disabled selected>학급 이름</option>` + classList.map(o => `<option value='${o.class}'>${o.class}</option>`).join('') );
@@ -247,12 +274,10 @@ async function regen() {
   const teacherListDataTable = $('#teacher-list').DataTable();
   
   classListDataTable.clear();
-  classListDataTable.rows.add(classList);
-  classListDataTable.draw();
+  classListDataTable.rows.add(classList).draw();
   
   teacherListDataTable.clear();
-  teacherListDataTable.rows.add(teacherList);
-  teacherListDataTable.draw();
+  teacherListDataTable.rows.add(teacherList).draw();
 }
 
 function generateUnitTable(classList, teacherList) {
@@ -419,7 +444,7 @@ div#page_tooltip li {
     </li>
     <li><b>포함</b> 열이 체크된 학급의 교사만 근무표에 포함됩니다.</li>
     <li>학급을 추가하려면 표 상단의 학급 이름과 연령을 입력한 후 <kbd><i class='fas fa-layer-plus'></i> 추가</kbd> 를 클릭하세요.</li>
-    <li><b>연령</b> 값이 3 이상인 경우 유아반으로 분류하며, 값이 숫자인 학급만 색깔이 표시됩니다.<br>학급을 새로 추가하면 색깔이 잘못 표시되는 경우가 있는데, 새로고침하면 해결됩니다.</li>
+    <li><b>연령</b> 값이 3 이상인 경우 유아반으로 분류하며, 값이 숫자인 학급만 색깔이 표시됩니다. 학급 색깔이 표에서 잘못 표시되는 경우, 새로고침하면 해결됩니다.</li>
     <li><i class='fas fa-trash-alt'></i> 아이콘을 클릭하면 해당 학급이 삭제됩니다.</li>
   </ul>
 </div>

@@ -5,7 +5,10 @@ async function main() {
   /* timetable initialization */
   /*let*/ timetable = [];
   const target = $('#calendar div.day.set');
-  if(!target.length) return Swal.fire({ icon: 'error', title: '선택된 날이 없습니다!' });
+  if(!target.length) {
+    $('#start, #reset').attr('disabled', false);
+    return Swal.fire({ icon: 'error', title: '선택된 날이 없습니다!' });
+  }
   for(const dom of target) timetable.push(new Day($(dom).attr('data-day'), !$(dom).hasClass('today')));
   
   /* loading data */
@@ -13,41 +16,22 @@ async function main() {
   const teacherList = await $.ajax(`${api_base_url}/teacher/all`);
   
   /* classes and teachers initialization */
-  /*let*/ classes = [], ages = {}, categories = {}, teachers = [];
+  /*let*/ classes = [], teachers = [], agesIndex = { infant: [], child: [] };
   classList.filter(c => c.isIncluded == "true").forEach(c => {
     let members = [];
-    const staffs = teacherList.filter(t => t.class == c.class); // 소속 선생님 찾기
+    teacherList.filter(t => t.class == c.class).forEach(t => {
+      // 선생님 객체 생성
+      let teacher = new Teacher(t.id, t.name, t.class, JSON.parse(t.restriction));
+      teachers.push(teacher); // 선생님 목록에 추가
+      members.push(teacher); // 학급별 선생님 목록에 추가
+    });
+    classes.push(new Class(c.class, c.age, members)); // 학급 목록에 추가
     
-    if(staffs.length) { // 소속 선생님이 존재하는 경우만
-      staffs.forEach(t => {
-        // 선생님 객체 생성
-        let teacher = new Teacher(t.id, t.name, t.class, JSON.parse(t.restriction));
-        
-        teachers.push(teacher); // 선생님 목록에 추가
-        members.push(teacher); // 학급별 선생님 목록에 추가
-        
-        // 나이별 선생님 목록에 추가
-        if(!ages[c.age]) ages[c.age] = [];
-        ages[c.age].push(teacher);
-        
-        // 분류별(영/유아/기타) 선생님 목록에 추가
-        if(Number(c.age)) {
-          if(Number(c.age) < 3) { // 영아 - 2세 이하
-            if(!categories.infant) categories.infant = [];
-            categories.infant.push(teacher);
-          }
-          else if(Number(c.age) > 2) { // 유아 - 3세 이상
-            if(!categories.child) categories.child = [];
-            categories.child.push(teacher);
-          }
-        }
-        else {
-          if(!categories.etc) categories.etc = [];
-          categories.etc.push(teacher);
-        }
-      });
-      classes.push(new Class(c.class, c.age, members)); // 학급 목록에 추가
-    }
+    // 나이 인덱스에 추가
+    if(!agesIndex[Number(c.age)]) agesIndex[c.age] = [];
+    if     (Number(c.age) && (Number(c.age) < 3)) agesIndex['infant'].push(c.class);
+    else if(Number(c.age) && (Number(c.age) > 2)) agesIndex['child'].push(c.class);
+    agesIndex[c.age].push(c.class);
   });
   
   /* processing */
@@ -62,6 +46,7 @@ async function main() {
     else if(timetable[i].day == 'sat') op = 0;
     
     const day = timetable[Number(i) + op].day;
+    const sat_rand = Math.random() < 0.5;
     
     /* reset counts at start of week operation (tuesday) */
     if(day == 'tue') {
@@ -69,30 +54,92 @@ async function main() {
         Object.entries(t.counts).forEach(([k, v]) => { t.counts[k] = 0; });
       });
     }
-    
-    /* shuffles teacher list by ages */
-    Object.entries(ages).forEach(([a, t]) => { ages[a] = t.map(x => ([Math.random(), x])).sort((x, y) => x[0] - y[0]).map(x => x[1]); });
-    
+ 
+    let loop_teachers = []; // loop별 새로 복사한 선생님 목록 필요
+    teachers.forEach(o => loop_teachers.push(o));
+
     /* set t0630 timetable: timetable[Number(i) + op].t0630 */
+    let t0630_teachers = []; // 각 time별 새로 복사한 선생님 목록 필요
+    loop_teachers.forEach(o => t0630_teachers.push(o));
+
     // 개인 제약조건 제외
+    t0630_teachers = t0630_teachers.filter(t => !t.restriction.includes(`t0630|${day}`));
+    
     // t0630_t0730, L_Dty 최대치 제한 제외
+    t0630_teachers = t0630_teachers.filter(t => ((t.counts.t0630_t0730 < limits.t0630_t0730) || (t.counts.L_Dty < limits.L_Dty)));
     
     if(day == 'sat') { // 토요일일 때
-      // F_Dty 최대치 제한 제외 - 새벽당직 한 적 있으면 제외 - 새벽당직 기준 확인 요망
+      // 1주일간 t0630 제외
+      t0630_teachers = t0630_teachers.filter(t => !t.counts.t0630);
+      
       // 영아1 or 유아1 선택
+      const tgt = sat_rand ? 'infant' : 'child';
+      t0630_teachers = t0630_teachers.filter(t => agesIndex[tgt].includes(t.class));
+
+      // 1명 추출 후 목록에서 제거
+      const pick = t0630_teachers.splice(Math.floor(Math.random() * t0630_teachers.length), 1)[0];
+      loop_teachers = loop_teachers.filter(t => t.id != pick.id);
+
+      // 추출된 인원 count 증가
+      pick.counts.t0630++;
+      pick.counts.t0630_t0730++;
+
+      // timetable에 추가
+      timetable[Number(i) + op].t0630.push(pick);
     }
     else { // 토요일 아닐 때
-      // 전날 L_Dty 제외
-      // 행사 있는 연령 제외
-      // 전날, 다음날 t0630_t0730 제외
-      // 휴가 있는 연령 제외
+      // 전날 L_Dty, 전날 및 다음날 t0630_t0730 제외
+      const dayBefore = (Number(i) + op - 1), dayAfter = (Number(i) + op + 1);
+      if(dayBefore >= 0 && dayAfter < timetable.length) {
+        let target_List = [];
+        target_List = target_List.concat(timetable[dayBefore].L_Dty.map(o => o.id));
+        target_List = target_List.concat(timetable[dayBefore].t0630.map(o => o.id));
+        target_List = target_List.concat(timetable[dayBefore].t0730.map(o => o.id));
+        target_List = target_List.concat(timetable[dayAfter].t0630.map(o => o.id));
+        target_List = target_List.concat(timetable[dayAfter].t0730.map(o => o.id));
+        t0630_teachers = t0630_teachers.filter(t => !target_List.includes(t.id));
+      }
+      // !!!!! 행사 있는 연령 제외
+      // !!!!! 휴가 있는 연령 제외
       if(day == 'mon') {
         // 전 주 금요일 t0630_t0730 제외
+        const lastFriday = (Number(i) + op - 2);
+        if(lastFriday >= 0) {
+          let target_List = [];
+          target_List = target_List.concat(timetable[lastFriday].t0630.map(o => o.id));
+          target_List = target_List.concat(timetable[lastFriday].t0730.map(o => o.id));
+          t0630_teachers = t0630_teachers.filter(t => !target_List.includes(t.id));
+        }
       }
       else if (day == 'fri') {
         // 전 주 월요일 t0630_t0730 제외
+        const lastMonday = (Number(i) + op - 10);
+        if(lastMonday >= 0) {
+          let target_List = [];
+          target_List = target_List.concat(timetable[lastMonday].t0630.map(o => o.id));
+          target_List = target_List.concat(timetable[lastMonday].t0730.map(o => o.id));
+          t0630_teachers = t0630_teachers.filter(t => !target_List.includes(t.id));
+        }
       }
       // 영아1, 유아1 선택
+      const t0630_teachers_infant = t0630_teachers.filter(t => agesIndex['infant'].includes(t.class));
+      const t0630_teachers_child = t0630_teachers.filter(t => agesIndex['child'].includes(t.class));
+      
+      // 1명 추출 후 목록에서 제거
+      const pick_infant = t0630_teachers_infant.splice(Math.floor(Math.random() * t0630_teachers_infant.length), 1)[0];
+      const pick_child = t0630_teachers_child.splice(Math.floor(Math.random() * t0630_teachers_child.length), 1)[0];
+      // t0630_teachers = t0630_teachers.filter(t => t.id != pick_infant.id); -> 어차피 t0630 끝이라 필요없음
+      loop_teachers = loop_teachers.filter(t => (t.id != pick_infant.id) && (t.id != pick_child.id));
+
+      // 추출된 인원 count 증가
+      pick_infant.counts.t0630++;
+      pick_infant.counts.t0630_t0730++;
+      pick_child.counts.t0630++;
+      pick_child.counts.t0630_t0730++;
+
+      // timetable에 추가
+      timetable[Number(i) + op].t0630.push(pick_infant, pick_child);
+      timetable[Number(i) + op].t0630.push(pick_infant, pick_child);
     }
     
     /* set t0900 timetable: timetable[Number(i) + op].t0900 */
@@ -105,12 +152,12 @@ async function main() {
       // 전 주 월요일 t0830_t0900 제외
     }
     else if(day == 'sat') {
-      // F_Dty 최대치 제한 제외 - 새벽당직 한 적 있으면 제외 - 새벽당직 기준 확인 요망
+      // 1주일간 t0630 제외
       // 영아1 or 유아1 선택 (토요일 6시와 반대)
       continue;
     }
     // 연령별 1명씩 선택 + 랜덤 출근인원 1명 선택
-    // !! 조건 체크
+    // 0630 출근한 그룹은 0900 출근. 홀, 막당직은 제외
     
     /* set t0730 timetable: timetable[Number(i) + op].t0730 */
     // 개인 제약조건 제외
@@ -124,19 +171,23 @@ async function main() {
     }
     // 휴가 있는 연령 제외
     // 연령별 1명씩 선택
-    // !! 조건 체크
+    // 0630 출근한 그룹은 0900 출근. 홀, 막당직은 제외
     
     /* set t0830 timetable: timetable[Number(i) + op].t0830 */
     // 개인 제약조건 제외
-    // !! 조건 체크
+    // 휴가자 수 따라 배치
     // 남은 인원 8명 선택
     // 오전홀1은 L에서 선택, 오후홀2는 야간반에서 선택
     
-    break;
+    //break;
   }
   
   /* re-enable buttons */
   $('#start, #reset').attr('disabled', false);
+}
+
+function shuffleArray(array) {
+  Object.entries(array).forEach(([a, t]) => { array[a] = t.map(x => ([Math.random(), x])).sort((x, y) => x[0] - y[0]).map(x => x[1]); });
 }
 
 $(function() {
