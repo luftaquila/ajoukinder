@@ -143,20 +143,56 @@ async function main() {
     }
     
     /* set t0900 timetable: timetable[Number(i) + op].t0900 */
+    let t0900_teachers = []; // 각 time별 새로 복사한 선생님 목록 필요
+    loop_teachers.forEach(o => t0900_teachers.push(o));
+    
     // 개인 제약조건 제외
+    t0900_teachers = t0900_teachers.filter(t => !t.restriction.includes(`t0900|${day}`));
+    
     // t0900 최대치 제한 제외
+    t0900_teachers = t0900_teachers.filter(t => t.counts.t0900 < limits.t0900);
+    
     if(day == 'mon') {
       // 전 주 금요일 t0830_t0900 제외
+      const lastFriday = (Number(i) + op - 2);
+      if(lastFriday >= 0) {
+        let target_List = [];
+        target_List = target_List.concat(timetable[lastFriday].t0830.map(o => o.id));
+        target_List = target_List.concat(timetable[lastFriday].t0900.map(o => o.id));
+        t0900_teachers = t0900_teachers.filter(t => !target_List.includes(t.id));
+      }
     }
     else if (day == 'fri') {
       // 전 주 월요일 t0830_t0900 제외
+      const lastMonday = (Number(i) + op - 10);
+      if(lastMonday >= 0) {
+        let target_List = [];
+        target_List = target_List.concat(timetable[lastMonday].t0830.map(o => o.id));
+        target_List = target_List.concat(timetable[lastMonday].t0900.map(o => o.id));
+        t0900_teachers = t0900_teachers.filter(t => !target_List.includes(t.id));
+      }
     }
     else if(day == 'sat') {
       // 1주일간 t0630 제외
+      t0900_teachers = t0900_teachers.filter(t => !t.counts.t0630);
+      
       // 영아1 or 유아1 선택 (토요일 6시와 반대)
+      const tgt = !sat_rand ? 'infant' : 'child';
+      t0900_teachers = t0900_teachers.filter(t => agesIndex[tgt].includes(t.class));
+      
+      // 1명 추출 후 목록에서 제거
+      const pick = t0900_teachers.splice(Math.floor(Math.random() * t0900_teachers.length), 1)[0];
+      loop_teachers = loop_teachers.filter(t => t.id != pick.id);
+
+      // 추출된 인원 count 증가
+      pick.counts.t0900++;
+
+      // timetable에 추가
+      timetable[Number(i) + op].t0900.push(pick);
+      
       continue;
     }
-    // 연령별 1명씩 선택 + 랜덤 출근인원 1명 선택
+    // 연령별 1명씩 선택 + 랜덤 출근인원 1명 선택 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     // 0630 출근한 그룹은 0900 출근. 홀, 막당직은 제외
     
     /* set t0730 timetable: timetable[Number(i) + op].t0730 */
