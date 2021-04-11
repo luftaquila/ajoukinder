@@ -59,10 +59,11 @@ class Class {
 }
 
 class Teacher {
-  constructor(id, name, group, restriction) {
+  constructor(id, name, group, age, restriction) {
     this.id = id;
     this.name = name;
     this.class = group;
+    this.age = age;
     this.restriction = restriction;
     
     this.counts = {
