@@ -1,26 +1,8 @@
-$(function() {
-  $('#sidebarToggle').trigger('click');
-  $('#devinfo').click(function(e) {
-    e.preventDefault();
-    Swal.fire({
-      title: `개발자 정보 <i class="fad fa-person-sign"></i>`,
-      html: `
-<div style='font-size: 1rem'>
-  아주대학교 어린이집 일정관리체계 개발자 <b>오병준</b>입니다.<br>
-  서비스 이용 중 오류 제보, 기능 수정 및 추가 등이 필요하면 아래 연락처로 연락 주세요.
-</div>
-<br>
-<div style='width: fit-content; margin: 0px auto; text-align: left; font-size: 1rem;'>
-  <i class='fas fa-fw fa-envelope'></i> <a href='mailto:mail@luftaquila.io'>mail@luftaquila.io</a><br>
-  <i class='fas fa-fw fa-comment'></i> <a target="_blank" href="http://qr.kakao.com/talk/RmgKn.t2Sxgy8I7hwdhuYZQF1vc-">카카오톡(ID: luftaquila)</a><br>
-  <i class='fas fa-fw fa-mobile-android'></i> <a href='tel:010-9479-3691'>010-9479-3691</a><br>
-</div>
-`,
-      showCloseButton: true,
-      showConfirmButton: false
-    });
-  });
-});
+/* 작업할 것 */
+// 오전/오후홀 하드코딩 -> 연령으로 선정
+// 출근 횟수 고르게 추출 - 전원 0830 1번 이상 구현
+// 휴가/연수/행사자 반영 -> 수동 수정으로 전환
+// Google SpreadSheet에 전송 구현
 
 api_base_url = '/ajoukinder/api';
 
@@ -44,10 +26,6 @@ class Day {
     this.t0900 = [];
     this.L_Dty = [];
   }
-  
-  test() {
-    return this;
-  }
 }
 
 class Class {
@@ -69,9 +47,34 @@ class Teacher {
     this.counts = {
       t0630       : 0,
       t0630_t0730 : 0,
+      t0830       : 0,
       t0900       : 0,
       L_Dty       : 0,
       hall        : 0
     }
   }
 }
+
+$(function() {
+  $('#sidebarToggle').trigger('click');
+  $('#devinfo').click(function(e) {
+    e.preventDefault();
+    Swal.fire({
+      title: `개발자 정보 <i class="fad fa-person-sign"></i>`,
+      html: `
+<div style='font-size: 1rem'>
+  아주대학교 어린이집 일정관리체계 개발자 <b>오병준</b>입니다.<br>
+  서비스 이용 중 오류 제보, 기능 수정 및 추가 등이 필요하면 아래 연락처로 연락 주세요.
+</div>
+<br>
+<div style='width: fit-content; margin: 0px auto; text-align: left; font-size: 1rem;'>
+  <i class='fas fa-fw fa-envelope'></i> <a href='mailto:mail@luftaquila.io'>mail@luftaquila.io</a><br>
+  <i class='fas fa-fw fa-comment'></i> <a target="_blank" href="http://qr.kakao.com/talk/RmgKn.t2Sxgy8I7hwdhuYZQF1vc-">카카오톡(ID: luftaquila)</a><br>
+  <i class='fas fa-fw fa-mobile-android'></i> <a href='tel:010-9479-3691'>010-9479-3691</a><br>
+</div>
+`,
+      showCloseButton: true,
+      showConfirmButton: false
+    });
+  });
+});

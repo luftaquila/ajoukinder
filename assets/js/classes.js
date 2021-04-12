@@ -151,7 +151,7 @@ $(async function() {
         time: { '06:30': 't0630', '07:30':'t0730', '아침홀': 'amH', '08:30':'t0830', '저녁홀': 'pmH', '09:00':'t0900', '막당직': 'L_Dty' }
       }
       
-      let html = `<div style='margin-bottom: 0.5rem; font-size: 0.9rem;'><i class='fas fa-lightbulb-exclamation' style='color: forestgreen'></i>&ensp;근무에서 제외할 날을 선택하세요.</div><table id='restrictions' data-target='${target}' style='width: 100%'>`;
+      let html = `<div style='margin-bottom: 0.5rem; font-size: 0.9rem;'><i class='fas fa-lightbulb-exclamation' style='color: forestgreen'></i>&ensp;근무에서 제외할 조건을 선택하세요.</div><table id='restrictions' data-target='${target}' style='width: 100%'>`;
       
       // table header row generation
       html += `<tr><th></th>`;
@@ -172,7 +172,7 @@ $(async function() {
       }
       
       // table footer generation
-      html += `</table><div style='margin-top: 0.5rem;'><span id='toggle_restrictions' class='d-sm-inline-block btn btn-sm btn-primary shadow-sm text-white' style='font-size: 0.8rem; margin-left: 0.5rem;'><i class='far fa-check-square'></i>&ensp;전체 선택/선택해제</span></div><style>table#restrictions{text-align:center;}table#restrictions tr td {padding:5px;}table#restrictions tr th {padding:7px;}</style>`;
+      html += `</table><div style='margin-top: 0.5rem;'><span id='toggle_restrictions' class='d-sm-inline-block btn btn-sm btn-primary shadow-sm text-white' style='font-size: 0.8rem; margin-left: 0.5rem;'><i class='far fa-check-square'></i>&ensp;전체 선택/선택해제</span></div><div style='text-align: left; margin-top: 1rem; font-size: 0.8rem;'><i class="fas fa-engine-warning" style="color: #e99f00"></i> 07:30을 선택하면 아침홀은, 09:00을 선택하면 저녁홀과 막당직은 체크하지 않아도 제외됩니다. 해당 시간대에 출근은 하되 홀지원 또는 당직에서만 제외하는 경우에 아침/저녁홀 및 막당직에 체크합니다.</div><style>table#restrictions{text-align:center;}table#restrictions tr td {padding:5px;}table#restrictions tr th {padding:7px;}</style>`;
       
       Swal.fire({
         title: `${targetName} 선생님 제약조건 수정`,
@@ -486,8 +486,7 @@ div#class_tooltip li {
     <li>교사를 추가하려면 표 상단의 교사 코드와 이름, 학급을 입력한 후 <kbd><i class='fas fa-user-plus'></i> 추가</kbd> 를 클릭하세요.</li>
     <li><i class='fas fa-trash-alt'></i> 아이콘을 클릭하면 해당 교사가 삭제됩니다.</li>
     <li>
-      <b>제약조건</b>은 해당 교사를 근무표에 포함하지 않는 조건입니다.<br>
-      체크된 시간대 및 요일에만 해당 교사를 근무 시간표에서 제외합니다.
+      <b>제약조건</b>은 해당 교사를 근무표에 포함하지 않는 조건입니다. 체크된 시간대 및 요일에만 해당 교사를 근무 시간표에서 제외합니다.
     </li>
     <li>표 하단의 <kbd><i class='fas fa-eraser'></i> 제약조건 전체 삭제</kbd>를 클릭하면 모든 교사의 제약조건을 일괄 삭제합니다.</li>
   </ul>

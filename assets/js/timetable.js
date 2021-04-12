@@ -1,16 +1,13 @@
 async function main() {
   try {
-    const startTime = performance.now();
+    startCount++;
     $('#output').text('STARTING...').css('color', 'white');
     $('#timetable').html('');
     
     /* timetable initialization */
     let timetable = [];
     const target = $('#calendar div.day.set');
-    if(!target.length) {
-      $('#output').text('ERROR.').css('color', 'orangered');
-      return Swal.fire({ icon: 'error', title: '선택된 날이 없습니다!' });
-    }
+    if(!target.length) throw new RangeError('날짜를 선택하세요!');
     for(const dom of target) timetable.push(new Day($(dom).attr('data-day'), !$(dom).hasClass('today')));
     
     /* loading data */
@@ -109,22 +106,22 @@ async function main() {
         // !!!!! 행사 있는 연령 제외
         // !!!!! 휴가 있는 연령 제외
         if(day == 'mon') {
-          // 전 주 금요일 t0630_t0730 제외
-          const lastFriday = (Number(i) + op - 2);
-          if(lastFriday >= 0) {
-            let target_List = [];
-            target_List = target_List.concat(timetable[lastFriday].t0630.map(o => o.id));
-            target_List = target_List.concat(timetable[lastFriday].t0730.map(o => o.id));
-            t0630_teachers = t0630_teachers.filter(t => !target_List.includes(t.id));
-          }
-        }
-        else if (day == 'fri') {
           // 전 주 월요일 t0630_t0730 제외
           const lastMonday = (Number(i) + op - 10);
           if(lastMonday >= 0) {
             let target_List = [];
             target_List = target_List.concat(timetable[lastMonday].t0630.map(o => o.id));
             target_List = target_List.concat(timetable[lastMonday].t0730.map(o => o.id));
+            t0630_teachers = t0630_teachers.filter(t => !target_List.includes(t.id));
+          }
+        }
+        else if (day == 'fri') {
+          // 전 주 금요일 t0630_t0730 제외
+          const lastFriday = (Number(i) + op - 2);
+          if(lastFriday >= 0) {
+            let target_List = [];
+            target_List = target_List.concat(timetable[lastFriday].t0630.map(o => o.id));
+            target_List = target_List.concat(timetable[lastFriday].t0730.map(o => o.id));
             t0630_teachers = t0630_teachers.filter(t => !target_List.includes(t.id));
           }
         }
@@ -148,6 +145,7 @@ async function main() {
         timetable[Number(i) + op].t0630.push(pick_infant, pick_child);
       }
       
+      
       /* set t0900 timetable: timetable[Number(i) + op].t0900 */
       let t0900_teachers = []; // 각 time별 새로 복사한 선생님 목록 필요
       loop_teachers.forEach(o => t0900_teachers.push(o));
@@ -162,36 +160,33 @@ async function main() {
       t0900_teachers = t0900_teachers.filter(t => t.counts.t0900 < limits.t0900);
       
       if(day == 'mon') {
-        // 전 주 금요일 t0830_t0900 제외
-        const lastFriday = (Number(i) + op - 2);
-        if(lastFriday >= 0) {
+        // 전 주 월요일 t0900 제외
+        const lastMonday = (Number(i) + op - 10);
+        if(lastMonday >= 0) {
           let target_List = [];
-          target_List = target_List.concat(timetable[lastFriday].t0830.map(o => o.id));
-          target_List = target_List.concat(timetable[lastFriday].t0900.map(o => o.id));
+          target_List = target_List.concat(timetable[lastMonday].t0900.map(o => o.id));
           t0900_teachers = t0900_teachers.filter(t => !target_List.includes(t.id));
         }
       }
       else if (day == 'fri') {
-        // 전 주 월요일 t0830_t0900 제외
-        const lastMonday = (Number(i) + op - 10);
-        if(lastMonday >= 0) {
+        // 전 주 금요일 t0900 제외
+        const lastFriday = (Number(i) + op - 2);
+        if(lastFriday >= 0) {
           let target_List = [];
-          target_List = target_List.concat(timetable[lastMonday].t0830.map(o => o.id));
-          target_List = target_List.concat(timetable[lastMonday].t0900.map(o => o.id));
+          target_List = target_List.concat(timetable[lastFriday].t0900.map(o => o.id));
           t0900_teachers = t0900_teachers.filter(t => !target_List.includes(t.id));
         }
       }
       else if(day == 'sat') {
         // 1주일간 t0630 제외
-        t0900_teachers = t0900_teachers.filter(t => !t.counts.t0630);
+        loop_teachers = loop_teachers.filter(t => !t.counts.t0630);
         
         // 영아1 or 유아1 선택 (토요일 6시와 반대)
         const tgt = !sat_rand ? 'infant' : 'child';
-        t0900_teachers = t0900_teachers.filter(t => agesIndex[tgt].includes(t.class));
+        loop_teachers = loop_teachers.filter(t => agesIndex[tgt].includes(t.class));
         
         // 1명 추출 후 목록에서 제거
-        const pick = t0900_teachers.splice(Math.floor(Math.random() * t0900_teachers.length), 1)[0];
-        loop_teachers = loop_teachers.filter(t => t.id != pick.id);
+        const pick = loop_teachers.splice(Math.floor(Math.random() * loop_teachers.length), 1)[0];
   
         // 추출된 인원 count 증가
         pick.counts.t0900++;
@@ -232,8 +227,29 @@ async function main() {
         pick_rand.counts.t0900++;
         timetable[Number(i) + op].t0900.push(pick_rand);
       }
-    
-      // 0630 출근한 그룹은 0900 출근 -> ???. 홀, 막당직은 제외 !!!!!!!!!!!
+      
+      // 추출 인원들 중에서 랜덤 2명 막당직 선택
+      // 행사 있는 인원 제외 !!!!!!!!
+      // L_Dty 최대치 제외
+      let L_Dty_targets = timetable[Number(i) + op].t0900.filter(t => (t.counts.L_Dty < limits.L_Dty));
+      for(let l = 0; l < 2; l++) {
+        const tgt = L_Dty_targets.splice(Math.floor(Math.random() * L_Dty_targets.length), 1)[0];
+        tgt.counts.L_Dty++;
+        timetable[Number(i) + op].L_Dty.push(tgt);
+      }
+      
+      // 남은 인원들 중에서 랜덤 2명 저녁홀 선택
+      // 홀 최대치 제외
+      t0900_teachers = t0900_teachers.filter(t => (t.counts.hall < limits.hall));
+      for(let d = 0; d < 2; d++) {
+        const tgt = t0900_teachers.splice(Math.floor(Math.random() * t0900_teachers.length), 1)[0];
+        if(!tgt) return main();
+        loop_teachers = loop_teachers.filter(t => t.id != tgt.id);
+        tgt.counts.hall++;
+        tgt.counts.t0900++;
+        timetable[Number(i) + op].pmH.push(tgt);
+      }
+      
       
       /* set t0730 timetable: timetable[Number(i) + op].t0730 */
       let t0730_teachers = []; // 각 time별 새로 복사한 선생님 목록 필요
@@ -258,16 +274,6 @@ async function main() {
       }
       
       if(day == 'mon') {
-        // 전 주 금요일 t0630_t0730 제외
-        const lastFriday = (Number(i) + op - 2);
-        if(lastFriday >= 0) {
-          let target_List = [];
-          target_List = target_List.concat(timetable[lastFriday].t0630.map(o => o.id));
-          target_List = target_List.concat(timetable[lastFriday].t0730.map(o => o.id));
-          t0730_teachers = t0730_teachers.filter(t => !target_List.includes(t.id));
-        }
-      }
-      else if (day == 'fri') {
         // 전 주 월요일 t0630_t0730 제외
         const lastMonday = (Number(i) + op - 10);
         if(lastMonday >= 0) {
@@ -277,9 +283,20 @@ async function main() {
           t0730_teachers = t0730_teachers.filter(t => !target_List.includes(t.id));
         }
       }
+      else if (day == 'fri') {
+        // 전 주 금요일 t0630_t0730 제외
+        const lastFriday = (Number(i) + op - 2);
+        if(lastFriday >= 0) {
+          let target_List = [];
+          target_List = target_List.concat(timetable[lastFriday].t0630.map(o => o.id));
+          target_List = target_List.concat(timetable[lastFriday].t0730.map(o => o.id));
+          t0730_teachers = t0730_teachers.filter(t => !target_List.includes(t.id));
+        }
+      }
       // 휴가 있는 연령 제외 !!!!!!!!!!!
       
       // 연령별 1명씩 선택
+      let rand_cnt = 0; // 랜덤 추출 인원
       let pick_t0730 = [];
       for(let m = 1; m <= 5; m++) {
         const tgt = t0730_teachers.filter(t => agesIndex[m].includes(t.class));
@@ -287,9 +304,23 @@ async function main() {
       }
       
       pick_t0730.forEach(o => {
-        if(!o) rand_count++;
-        else o.counts.t0730++;
+        if(!o) rand_cnt++;
+        else {
+          o.counts.t0730++;
+          o.counts.t0630_t0730++;
+        }
       });
+      
+      // 랜덤 출근인원 선택
+      for(let r = 0; r < rand_cnt; r++) {
+        const pick_rand = t0730_teachers.splice(Math.floor(Math.random() * t0730_teachers.length), 1)[0];
+        if(!pick_rand) return main(); // restart if no remaining teachers
+        pick_rand.counts.t0730++;
+        pick_rand.counts.t0630_t0730++;
+        
+        pick_t0730.push(pick_rand);
+      }
+      
       pick_t0730 = pick_t0730.filter(o => o);
       const pick_id_t0730 = pick_t0730.map(o => o.id);
       
@@ -299,8 +330,17 @@ async function main() {
       
       // timetable에 추가
       pick_t0730.forEach(o => timetable[Number(i) + op].t0730.push(o) );
+        
+      // 아침홀 1명 추출
+      t0730_teachers = t0730_teachers.filter(t => (t.counts.hall < limits.hall));
+      const amH_rand = t0730_teachers.splice(Math.floor(Math.random() * t0730_teachers.length), 1)[0];
+      if(!amH_rand) return main();
+      loop_teachers = loop_teachers.filter(t => t.id != amH_rand.id);
+      amH_rand.counts.hall++;
+      amH_rand.counts.t0730++;
+      amH_rand.counts.t0630_t0730++;
+      timetable[Number(i) + op].amH.push(amH_rand);
       
-      // 0630 출근한 그룹은 0900 출근. 홀, 막당직은 제외 !!!!!!!!!!!
       
       /* set t0830 timetable: timetable[Number(i) + op].t0830 */
       let t0830_teachers = []; // 각 time별 새로 복사한 선생님 목록 필요
@@ -317,38 +357,21 @@ async function main() {
       // 남은 인원 8명 선택
       for(let p = 0; p < 8; p++) {
         const tgt = t0830_teachers.splice(Math.floor(Math.random() * t0830_teachers.length), 1)[0];
+        if(!tgt) return main();
         loop_teachers = loop_teachers.filter(t => t.id != tgt.id);
         tgt.counts.t0830++;
         timetable[Number(i) + op].t0830.push(tgt);
       }
-      
-      // 오전홀1은 누리교사에서 선택, 오후홀2는 야간반에서 선택
-      const nuri_teachers = loop_teachers.filter(t => agesIndex['누리교사'].includes(t.class));
-      const night_teachers = loop_teachers.filter(t => agesIndex['야간반'].includes(t.class));
-      
-      const nuri = nuri_teachers.splice(Math.floor(Math.random() * nuri_teachers.length), 1)[0];
-      loop_teachers = loop_teachers.filter(t => t.id != nuri.id);
-      nuri.counts.hall++;
-      timetable[Number(i) + op].amH.push(nuri);
-      
-      for(let n = 0; n < 2; n++) {
-        const night = night_teachers.splice(Math.floor(Math.random() * night_teachers.length), 1)[0];
-        loop_teachers = loop_teachers.filter(t => t.id != night.id);
-        night.counts.hall++;
-        timetable[Number(i) + op].pmH.push(night);
-      }
     }
-    
-    const endTime = performance.now();
-    $('#output').text(`FINISHED. (${Math.round(endTime - startTime) / 1000}s)`).css('color', 'dodgerblue');
     
     /* draw result */
     draw(timetable, classList);
   }
   catch(e) {
-    console.error(e);
     $('#output').text('ERROR.').css('color', 'orangered');
-    return Swal.fire({ icon: 'error', title: `RUNTIME ERROR`, html: `<div style='font-size: 0.8rem; text-align: left;'>${e.stack.replace(/ /g, '&nbsp;')}</div>` });
+    $('#start, #reset').attr('disabled', false);
+    if(e.message.includes('날짜')) return Swal.fire({ icon: 'error', title: e.message });
+    else return Swal.fire({ icon: 'error', title: `RUNTIME ERROR`, html: `<div style='font-size: 0.8rem; text-align: left;'>${e.stack.replace(/ /g, '&nbsp;')}</div>` });
   }
 }
 
@@ -381,6 +404,10 @@ function draw(timetable, classList) {
   $('#timetable').html(html);
   moment.locale('en');
   
+  $('#output').text(`FINISHED. (${Math.round(performance.now() - startTime) / 1000}s, ${startCount}x)`).css('color', 'dodgerblue');
+  /* enabling buttons */
+  $('#start, #reset').attr('disabled', false);
+  
   function dateHeaderTag(str, i) {
     let tag = ``;
     for(let j = 0; j < 6; j++) tag += `<th>${moment(timetable[i * 6 + j].date, 'yyyy-MM-DD').format('M월 D일(ddd)')}</th>`;
@@ -390,7 +417,7 @@ function draw(timetable, classList) {
     let tag = ``;
     for(let j = 0; j < 6; j++) {
       let targetArray = timetable[i * 6 + j][target];
-      if(target == 't0730') targetArray = targetArray.concat(timetable[i * 6 + j].amH.map(o => { o.amH = true; return o; }));
+      // !!!!!!!!!! if(target == 't0730') targetArray = targetArray.concat(timetable[i * 6 + j].amH.map(o => { o.amH = true; return o; }));
       
       let tagContent = targetArray
       .sort((a, b) => { return a.age.localeCompare(b.age) })
@@ -421,7 +448,12 @@ function draw(timetable, classList) {
 }
 
 $(function() {
-  $('#start').click(main);
+  $('#start').click(() => {
+    /* disabling buttons */
+    $('#start, #reset').attr('disabled', true);
+    startTime = performance.now(), startCount = 0;
+    main()
+  });
   $('#reset').click(() => { 
     $('#output').text(`READY.`).css('color', 'limegreen');
     new Calendar('#calendar', [])
