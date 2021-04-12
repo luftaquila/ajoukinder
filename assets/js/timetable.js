@@ -1,18 +1,12 @@
-async function main() {
+function main() {
   try {
     startCount++;
     $('#output').text('STARTING...').css('color', 'white');
     $('#timetable').html('');
     
-    /* timetable initialization */
-    let timetable = [];
-    const target = $('#calendar div.day.set');
-    if(!target.length) throw new RangeError('날짜를 선택하세요!');
-    for(const dom of target) timetable.push(new Day($(dom).attr('data-day'), !$(dom).hasClass('today')));
-    
-    /* loading data */
-    const classList = await $.ajax(`${api_base_url}/class/all`);
-    const teacherList = await $.ajax(`${api_base_url}/teacher/all`);
+    let timetable = JSON.parse(JSON.stringify(timetable_init));
+    const classList = JSON.parse(JSON.stringify(classList_init));
+    const teacherList = JSON.parse(JSON.stringify(teacherList_init));
     
     /* classes and teachers initialization */
     let classes = [], teachers = [], agesIndex = { infant: [], child: [] };
@@ -311,16 +305,6 @@ async function main() {
         }
       });
       
-      // 랜덤 출근인원 선택
-      for(let r = 0; r < rand_cnt; r++) {
-        const pick_rand = t0730_teachers.splice(Math.floor(Math.random() * t0730_teachers.length), 1)[0];
-        if(!pick_rand) return main(); // restart if no remaining teachers
-        pick_rand.counts.t0730++;
-        pick_rand.counts.t0630_t0730++;
-        
-        pick_t0730.push(pick_rand);
-      }
-      
       pick_t0730 = pick_t0730.filter(o => o);
       const pick_id_t0730 = pick_t0730.map(o => o.id);
       
@@ -330,6 +314,18 @@ async function main() {
       
       // timetable에 추가
       pick_t0730.forEach(o => timetable[Number(i) + op].t0730.push(o) );
+      
+      // 모자란 랜덤 출근인원 선택
+      for(let r = 0; r < rand_cnt; r++) {
+        const pick_rand = t0730_teachers.splice(Math.floor(Math.random() * t0730_teachers.length), 1)[0];
+        if(!pick_rand) return main(); // restart if no remaining teachers
+        
+        loop_teachers = loop_teachers.filter(t => t.id != pick_rand.id);
+        pick_rand.counts.t0730++;
+        pick_rand.counts.t0630_t0730++;
+        
+        timetable[Number(i) + op].t0730.push(pick_rand);
+      }
         
       // 아침홀 1명 추출
       t0730_teachers = t0730_teachers.filter(t => (t.counts.hall < limits.hall));
@@ -368,6 +364,7 @@ async function main() {
     draw(timetable, classList);
   }
   catch(e) {
+    console.log(e);
     $('#output').text('ERROR.').css('color', 'orangered');
     $('#start, #reset').attr('disabled', false);
     if(e.message.includes('날짜')) return Swal.fire({ icon: 'error', title: e.message });
@@ -448,12 +445,24 @@ function draw(timetable, classList) {
 }
 
 $(function() {
-  $('#start').click(() => {
+  $('#start').click(async () => {
     /* disabling buttons */
     $('#start, #reset').attr('disabled', true);
     startTime = performance.now(), startCount = 0;
-    main()
+    
+    /* timetable initialization */
+    timetable_init = [];
+    const target = $('#calendar div.day.set');
+    if(!target.length) throw new RangeError('날짜를 선택하세요!');
+    for(const dom of target) timetable_init.push(new Day($(dom).attr('data-day'), !$(dom).hasClass('today')));
+    
+    /* loading data */
+    classList_init = await $.ajax(`${api_base_url}/class/all`);
+    teacherList_init = await $.ajax(`${api_base_url}/teacher/all`);
+    
+    main();
   });
+  
   $('#reset').click(() => { 
     $('#output').text(`READY.`).css('color', 'limegreen');
     new Calendar('#calendar', [])
