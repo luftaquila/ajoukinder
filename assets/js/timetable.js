@@ -1,7 +1,8 @@
 function main() {
   try {
+    if(performance.now() - startTime > 500) throw new Error('Calculation timeout error.');
     startCount++;
-    $('#output').text('STARTING...').css('color', 'white');
+    $('#output').text('CALCULATING...').css('color', 'white');
     $('#timetable').html('');
     
     let timetable = JSON.parse(JSON.stringify(timetable_init));
@@ -364,16 +365,14 @@ function main() {
     draw(timetable, classList);
   }
   catch(e) {
-    console.log(e);
+    console.error(e);
     $('#output').text('ERROR.').css('color', 'orangered');
     $('#start, #reset').attr('disabled', false);
-    if(e.message.includes('날짜')) return Swal.fire({ icon: 'error', title: e.message });
-    else return Swal.fire({ icon: 'error', title: `RUNTIME ERROR`, html: `<div style='font-size: 0.8rem; text-align: left;'>${e.stack.replace(/ /g, '&nbsp;')}</div>` });
+    return Swal.fire({ icon: 'error', title: `RUNTIME ERROR`, html: `<div style='font-size: 0.8rem; text-align: left;'>${e.stack.replace(/ /g, '&nbsp;')}</div>` });
   }
 }
 
 function draw(timetable, classList) {
-  console.log(timetable);
   moment.locale('ko');
   let html = ``;
   for(let i = 0; i < timetable.length / 6; i++) {    
@@ -383,89 +382,107 @@ function draw(timetable, classList) {
         <tr><td>고려사항</td><td colspan=6></td></tr>
         <tr><td>6:30</td> ${timeValueTag`${i} ${'t0630'}`} </tr>
         <tr><td>7:30<br>(7:20)</td> ${timeValueTag`${i} ${'t0730'}`} </tr>
-        <tr><td>8:30<br>(8:30~9:30)<br>♠(4:00~5:00)</td> ${timeValueTag`${i} ${'t0830'}`} </tr>
+        <tr><td>8:30<br>(8:30~9:30)<br>(♠ 4:00~5:00)</td> ${timeValueTag`${i} ${'t0830'}`} </tr>
         <tr><td>9:00<br>(5:00~6:00)</td> ${timeValueTag`${i} ${'t0900'}`} </tr>
       </table>
     `;
   }
   html += `
     <style>
-      .time-table { width: 100%; max-width: 850px; text-align: center; margin-bottom: 3rem; }
+      .time-table { width: 1100px; text-align: center; margin-bottom: 3rem; }
       .time-table tr th { padding: 10px 10px; border: 1px solid gray; }
       .time-table tr td { padding:  3px 10px; border: 1px solid gray; }
-      .content-table { margin: 0 auto; text-align: left; }
-      .content-table tr td { padding: 2px; border: none; }
+      .content-table { margin: 0 auto; }
+      .content-table tr td { padding: 2px 5px; border: none; }
       ${classColorTag`${null}`}
     </style>
   `;
-  $('#timetable').html(html);
   moment.locale('en');
   
+  $('#timetable').html(html);
   $('#output').text(`FINISHED. (${Math.round(performance.now() - startTime) / 1000}s, ${startCount}x)`).css('color', 'dodgerblue');
-  /* enabling buttons */
   $('#start, #reset').attr('disabled', false);
+  console.log(timetable);
   
-  function dateHeaderTag(str, i) {
-    let tag = ``;
-    for(let j = 0; j < 6; j++) tag += `<th>${moment(timetable[i * 6 + j].date, 'yyyy-MM-DD').format('M월 D일(ddd)')}</th>`;
-    return tag;
-  }
+  function dateHeaderTag(str, i) { let tag = ``; for(let j = 0; j < 6; j++) tag += `<th>${moment(timetable[i * 6 + j].date, 'yyyy-MM-DD').format('M월 D일(ddd)')}</th>`; return tag; }
   function timeValueTag(str, i, target) {
-    let tag = ``;
+    let tag = ``, tdFrontTag = ``, tdAfterTag = ``;
     for(let j = 0; j < 6; j++) {
-      let targetArray = timetable[i * 6 + j][target];
-      // !!!!!!!!!! if(target == 't0730') targetArray = targetArray.concat(timetable[i * 6 + j].amH.map(o => { o.amH = true; return o; }));
+      let satFlag = false;
+      if(timetable[i * 6 + j].day == 'sat') {
+        if(target == 't0830' || target == 't0900') continue;
+        else if(target == 't0730') {
+          target = 't0900';
+          satFlag = true;
+        }
+      }
       
-      let tagContent = targetArray
-      .sort((a, b) => { return a.age.localeCompare(b.age) })
-      .sort((a, b) => { return a.name.localeCompare(b.name) })
-      .map((t, idx, arr) => `
-        ${!(idx % 2) ? `<tr>` : ``}
-          <td>
-            <span style='font-weight: bold'>
-              ${t.amH ? '(' : String.fromCharCode(9311 + classList.find(c => c.class == t.class).age * 1)}
-              <span class='${t.class}'> ${t.name} </span>
-              ${t.amH ? ')' : ''}
-            </span>
-          </td>
-        ${(idx % 2) ? `</tr>` : ``}
+      let targetArray = timetable[i * 6 + j][target]
+        .sort((a, b) => { return a.age.localeCompare(b.age) })
+        .sort((a, b) => { return a.name.localeCompare(b.name) });
+      
+      if(target == 't0730') {
+        targetArray = targetArray.concat(timetable[i * 6 + j].amH);
+        targetArray.amH = [];
+        timetable[i * 6 + j].amH.forEach(t => { targetArray.amH.push(t.id); });
+      }
+      else if(target == 't0830') {
+        const nuri = classList.find(c => c.age == '누리교사');
+        const night = classList.find(c => c.age == '야간반');
+        tdAfterTag = `<span class='${nuri.class}'>(${nuri.class})</span> <span class='${night.class}'>(♠ ${night.class})</span>`;
+      }
+      else if(target == 't0900') {
+        targetArray.pmH = [], targetArray.L_Dty = [];
+        tdFrontTag = timetable[i * 6 + j].pmH.length ? `( ${timetable[i * 6 + j].pmH.map(t => `<span class='${t.class}'>${t.name}</span>`).join(' / ')} )` : ``;
+        timetable[i * 6 + j].L_Dty.forEach(t => { targetArray.L_Dty.push(t.id); });
+      }
+      
+      let tagContent = targetArray.map((t, idx, arr) => {
+        let beforeTag = '', afterTag = '', ageMarkerTag = ageMarker(classList.find(c => c.class == t.class).age * 1) + ' ';
+
+        if(target == 't0730') {
+          if(arr.amH && arr.amH.includes(t.id)) beforeTag = '( ', afterTag = ' )', ageMarkerTag = '';
+        }
+        else if(target == 't0900') {
+          if(arr.L_Dty && arr.L_Dty.includes(t.id)) afterTag = '(막)';
+        }
         
-      `)
-      .join('');
+        return `${!(idx % 2) ? `<tr>` : ``}<td>${beforeTag}${ageMarkerTag}<span class='${t.class}'>${t.name}</span>${afterTag}</td>${(idx % 2) ? `</tr>` : ``}`
+      }).join('');
+
       
-      tag += `
-        <td>
-          <table class='content-table'>${tagContent}</table>
-          ${(target == 't0830' && timetable[i * 6 + j].day != 'sat') ? `<span style='color: black; font-weight: bold'>(L) (♠ K1 K2)</span>` : ``}
-        </td>`;
+      if(timetable[i * 6 + j].day == 'sat') tdAfterTag = '';
+      tag += `<td ${satFlag ? `rowspan=3` : ``} style='font-weight: bold'>${tdFrontTag}<table class='content-table'>${tagContent}</table>${tdAfterTag}</td>`;
     }
     return tag;
   }
   function classColorTag(str) { return classList.map(c => `.${c.class} { color: ${c.color} }`).join(''); }
+  function ageMarker(age) { return String.fromCharCode(9311 + age); }
+}
+
+async function init() {
+  $('#start, #reset').attr('disabled', true);
+  startTime = performance.now(), startCount = 0;
+
+  /* timetable initialization */
+  timetable_init = [];
+  const target = $('#calendar div.day.set');
+  if(!target.length) return Swal.fire({ icon: 'error', title: '날짜를 선택하세요!', didRender: () => $('#start, #reset').attr('disabled', false) });
+  for(const dom of target) timetable_init.push(new Day($(dom).attr('data-day'), !$(dom).hasClass('today')));
+
+  /* loading data */
+  classList_init = await $.ajax(`${api_base_url}/class/all`);
+  teacherList_init = await $.ajax(`${api_base_url}/teacher/all`);
+
+  main();
 }
 
 $(function() {
-  $('#start').click(async () => {
-    /* disabling buttons */
-    $('#start, #reset').attr('disabled', true);
-    startTime = performance.now(), startCount = 0;
-    
-    /* timetable initialization */
-    timetable_init = [];
-    const target = $('#calendar div.day.set');
-    if(!target.length) throw new RangeError('날짜를 선택하세요!');
-    for(const dom of target) timetable_init.push(new Day($(dom).attr('data-day'), !$(dom).hasClass('today')));
-    
-    /* loading data */
-    classList_init = await $.ajax(`${api_base_url}/class/all`);
-    teacherList_init = await $.ajax(`${api_base_url}/teacher/all`);
-    
-    main();
-  });
+  $('#start').click(init);
   
   $('#reset').click(() => { 
     $('#output').text(`READY.`).css('color', 'limegreen');
-    new Calendar('#calendar', [])
+    new Calendar('#calendar', []);
   }).trigger('click');
   
   $('#tooltip_page').click(() => {
