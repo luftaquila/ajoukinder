@@ -77,6 +77,7 @@ function main() {
   
         // 1명 추출 후 목록에서 제거
         const pick = t0630_teachers.splice(Math.floor(Math.random() * t0630_teachers.length), 1)[0];
+        if(!pick) return main();
         loop_teachers = loop_teachers.filter(t => t.id != pick.id);
   
         // 추출된 인원 count 증가
@@ -127,6 +128,8 @@ function main() {
         // 1명 추출 후 목록에서 제거
         const pick_infant = t0630_teachers_infant.splice(Math.floor(Math.random() * t0630_teachers_infant.length), 1)[0];
         const pick_child = t0630_teachers_child.splice(Math.floor(Math.random() * t0630_teachers_child.length), 1)[0];
+        if(!pick_infant || !pick_child) return main();
+
         // t0630_teachers = t0630_teachers.filter(t => t.id != pick_infant.id); -> 어차피 t0630 끝이라 필요없음
         loop_teachers = loop_teachers.filter(t => (t.id != pick_infant.id) && (t.id != pick_child.id));
   
@@ -229,6 +232,7 @@ function main() {
       let L_Dty_targets = timetable[Number(i) + op].t0900.filter(t => (t.counts.L_Dty < limits.L_Dty));
       for(let l = 0; l < 2; l++) {
         const tgt = L_Dty_targets.splice(Math.floor(Math.random() * L_Dty_targets.length), 1)[0];
+        if(!tgt) return main();
         tgt.counts.L_Dty++;
         timetable[Number(i) + op].L_Dty.push(tgt);
       }
