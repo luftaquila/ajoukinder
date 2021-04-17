@@ -1,6 +1,6 @@
 function main() {
   try {
-    if(performance.now() - startTime > 500) throw new Error('Calculation timeout error.');
+    if(performance.now() - startTime > 1000) throw new Error('Calculation timeout reached');
     startCount++;
     $('#output').text('CALCULATING...').css('color', 'white');
     $('#timetable').html('');
@@ -368,7 +368,10 @@ function main() {
     console.error(e);
     $('#output').text('ERROR.').css('color', 'orangered');
     $('#start, #reset').attr('disabled', false);
-    return Swal.fire({ icon: 'error', title: `RUNTIME ERROR`, html: `<div style='font-size: 0.8rem; text-align: left;'>${e.stack.replace(/ /g, '&nbsp;')}</div>` });
+    let error = '';
+    if(e.name == 'RangeError' && e.message == 'Maximum call stack size exceeded') error = '가능한 경우의 수가 없습니다.<br>교사 및 학급 목록을 확인하세요.';
+    else if(e.name == 'Error' && e.message == 'Calculation timeout reached') error = '계산 제한 시간을 초과했습니다.<br>가능한 경우의 수가 없을 수 있습니다.<br>교사 및 학급 목록을 확인하세요.';
+    return Swal.fire({ icon: 'error', title: `RUNTIME ERROR`, html: `${error}<br><br><div style='font-size: 0.8rem; text-align: left;'>${e.stack.replace(/ /g, '&nbsp;')}</div>` });
   }
 }
 
@@ -411,10 +414,7 @@ function draw(timetable, classList) {
       let satFlag = false;
       if(timetable[i * 6 + j].day == 'sat') {
         if(target == 't0830' || target == 't0900') continue;
-        else if(target == 't0730') {
-          target = 't0900';
-          satFlag = true;
-        }
+        else if(target == 't0730') target = 't0900', satFlag = true;
       }
       
       let targetArray = timetable[i * 6 + j][target]
@@ -451,7 +451,7 @@ function draw(timetable, classList) {
       }).join('');
 
       
-      if(timetable[i * 6 + j].day == 'sat') tdAfterTag = '';
+      if(timetable[i * 6 + j].day == 'sat' || timetable[i * 6 + j].isHoliday) tdAfterTag = '';
       tag += `<td ${satFlag ? `rowspan=3` : ``} style='font-weight: bold'>${tdFrontTag}<table class='content-table'>${tagContent}</table>${tdAfterTag}</td>`;
     }
     return tag;
