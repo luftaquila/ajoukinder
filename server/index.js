@@ -6,7 +6,8 @@ import group from './api/group.js';
 import teacher from './api/teacher.js';
 
 const app = express();
-app.use((req, res, next) => { 
+app.use((req, res, next) => {
+  res.header("Access-Control-Allow-Origin", "*"); // allow CORS requests
   req.originalPath = req.baseUrl + req.path;
   req.remoteIP = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
   next();
